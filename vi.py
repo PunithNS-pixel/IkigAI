@@ -1,8 +1,9 @@
 import streamlit as st
 import requests
+import json
 
-# Gemini API endpoint and key
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent"
+# Gemini API endpoint
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
 def gemini_generate(prompt):
@@ -22,87 +23,11 @@ def gemini_generate(prompt):
         st.error(f"Error fetching Gemini response ({response.status_code}): {response.text}")
         return ""
 
-# ---- Custom CSS for Ikigai themed aesthetics ----
-st.markdown(
-    """
-    <style>
-    /* Background and font */
-    .main {
-        background: linear-gradient(135deg, #d5e3e1, #f2efe8);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    /* Header styling */
-    .css-1v3fvcr h1 {
-        color: #2c3e50;
-        font-weight: 900;
-        font-size: 3rem;
-        margin-bottom: 0.1em;
-    }
-
-    /* Sidebar */
-    .css-1d391kg {
-        background-color: #f7f8f9;
-        border-radius: 15px;
-        padding: 20px;
-    }
-
-    /* Buttons */
-    button[kind="primary"] {
-        background-color: #3a9970 !important;
-        color: white !important;
-        font-weight: 600;
-        border-radius: 8px !important;
-        padding: 10px 20px !important;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
-    button[kind="primary"]:hover {
-        background-color: #2c7a51 !important;
-    }
-
-    /* Cards for sections */
-    .stContainer > div > div {
-        background-color: white;
-        box-shadow: 0 8px 24px rgba(46, 61, 73, 0.1);
-        padding: 20px 25px;
-        border-radius: 15px;
-        margin-bottom: 20px;
-    }
-
-    /* Badges */
-    .badge {
-        background-color: #54b689;
-        color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-weight: 700;
-        font-size: 0.9rem;
-        margin: 5px 3px;
-        display: inline-block;
-    }
-
-    /* Questions and answers */
-    .qa {
-        background-color: #fcfcfd;
-        padding: 12px 15px;
-        border-radius: 12px;
-        margin-bottom: 1em;
-        border: 1px solid #d0d6db;
-    }
-
-    .qa strong {
-        color: #3a9970;
-    }
-    </style>
-    """, unsafe_allow_html=True
-)
-
-st.title("🌸 Ikigai-Powered Career Path Advisor")
-st.write("*Your Ikigai is the intersection of what you love, what you are good at, what the world needs, and what you can be paid for.*")
+st.title("Ikigai-Powered Career Path Advisor")
+st.write("Find your ideal career path using the Japanese technique of Ikigai and the power of Google AI.")
 
 with st.sidebar:
-    st.header("📝 Your Ikigai Assessment")
+    st.header("Your Ikigai Assessment")
     name = st.text_input("Name")
     stage = st.selectbox("Education/Stage", ["High School", "College", "Graduate", "Other"])
     skills = st.text_area("What are you good at?")
@@ -147,16 +72,16 @@ with st.sidebar:
         st.session_state.badges.add("Ikigai Explorer")
 
 if st.session_state.get("ikigai_done", False):
-    st.subheader("🌿 Your Ikigai Profile")
+    st.subheader("Your Ikigai Profile")
     st.write(st.session_state.ikigai_summary)
-    st.write("**🎯 Suggested Careers:**")
+    st.write("**Suggested careers:**")
     for role in st.session_state.ikigai_careers:
         st.write(f"- {role}")
 
     st.session_state.badges.add("Career Pathfinder")
 
     # Personalized upskilling/resources
-    st.subheader("📈 Personalized Learning & Upskilling Plan")
+    st.subheader("Personalized Learning & Upskilling Plan")
     if st.button("Show My Learning Roadmap"):
         upskill_prompt = (f"Suggest 3 skill areas to improve and high-value certification/learning resources. "
                 f"Make it specific to this Ikigai: {st.session_state.ikigai_summary} "
@@ -166,7 +91,7 @@ if st.session_state.get("ikigai_done", False):
         st.session_state.badges.add("Lifelong Learner")
 
     # Real-time job suggestions
-    st.subheader("💼 Current Market: In-Demand Jobs & Skills")
+    st.subheader("Current Market: In-Demand Jobs & Skills")
     if st.button("Suggest Jobs in Demand"):
         jobs_prompt = (f"Based on the latest job market, what are 3 roles and their hottest skills for: {', '.join(st.session_state.ikigai_careers)}?")
         jobs = gemini_generate(jobs_prompt)
@@ -174,7 +99,7 @@ if st.session_state.get("ikigai_done", False):
         st.session_state.badges.add("Job Market Navigator")
 
     # Resume & Cover Letter Generation
-    st.subheader("📄 Generate Resume and Cover Letter")
+    st.subheader("Generate Resume and Cover Letter")
     exp = st.text_area("Describe your experience/goal statement:", key="exp")
     if st.button("Create Resume & Cover Letter"):
         resume_prompt = (f"Using the following experience and Ikigai result, generate a professional resume summary and a cover letter. "
@@ -185,7 +110,7 @@ if st.session_state.get("ikigai_done", False):
         st.session_state.badges.add("Resume Crafter")
 
 # --- Interactive AI Career Counselor Chatbot ---
-st.subheader("🤖 Ask the Career Counselor Chatbot")
+st.subheader("Ask the Career Counselor Chatbot")
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
@@ -200,12 +125,12 @@ if st.button("Ask Counselor"):
     st.session_state.badges.add("Chat Explorer")
 
 for q, a in st.session_state.chat_history:
-    st.markdown(f'<div class="qa"><strong>You:</strong> {q}<br><strong>Advisor:</strong> {a}</div>', unsafe_allow_html=True)
+    st.markdown(f"**You:** {q}\n\n**Advisor:** {a}")
 
 # --- Badges/rewards system ---
-st.sidebar.header("🏅 Your Badges")
+st.sidebar.header("Your Badges")
 for badge in st.session_state.badges:
-    st.sidebar.markdown(f'<div class="badge">{badge}</div>', unsafe_allow_html=True)
+    st.sidebar.success(f"🏅 {badge}")
 
-st.sidebar.subheader("🎓 Progress")
+st.sidebar.subheader("Progress")
 st.sidebar.info(f"Badges earned: {len(st.session_state.badges)}")
